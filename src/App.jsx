@@ -5,8 +5,10 @@ function App() {
     <div>
       <div>
         <h1 className="text-3xl font-bold underline">
-          Hello world!
+          Boton solicitado
         </h1>
+        <button>
+        </button>
       </div>
     </div>
   )
