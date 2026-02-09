@@ -9,6 +9,8 @@ function App() {
         </h1>
         <button>
         </button>
+        <button>
+        </button>
       </div>
     </div>
   )
