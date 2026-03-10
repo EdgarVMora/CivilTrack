@@ -5,15 +5,36 @@ export function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!email || !password) {
-      setError('Por favor ingresa tu correo y contraseña');
-      return;
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ correo: email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message || 'Error de autenticación');
+      } else {
+        onLogin(data.usuario);
+      }
+    } catch (err) {
+      setError('No se pudo conectar al servidor');
+    } finally {
+      setLoading(false);
     }
-    onLogin({ email });
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    setError('Password recovery is not available yet.');
   };
 
   return (
@@ -37,10 +58,10 @@ export function Login({ onLogin }) {
         required
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}
-      <button type="submit" className="bg-blue-500 text-white py-2 rounded w-full hover:bg-blue-600 transition">
-        Acceder
+      <button type="submit" className="bg-blue-500 text-white py-2 rounded w-full hover:bg-blue-600 transition" disabled={loading}>
+        {loading ? 'Accediendo...' : 'Acceder'}
       </button>
-      <a href="#" className="text-blue-500 text-sm mt-2 hover:underline">¿Olvidaste tu contraseña?</a>
+      <a href="#" onClick={handleForgotPassword} className="text-blue-500 text-sm mt-2 hover:underline">¿Olvidaste tu contraseña?</a>
     </form>
   );
 }
