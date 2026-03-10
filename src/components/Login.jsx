@@ -7,9 +7,41 @@ export function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const validateEmail = (email) => {
+    // Validación básica de email
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const getEmailError = (email) => {
+    const hasAt = email.includes('@');
+    const hasDot = email.includes('.');
+    if (!hasAt && !hasDot) {
+      return "El correo debe contener '@' y un dominio válido (ejemplo: .com).";
+    }
+    if (!hasAt) {
+      return "El correo debe contener el símbolo '@'.";
+    }
+    if (!hasDot) {
+      return "El correo debe tener un dominio válido (ejemplo: .com).";
+    }
+    return "Ingresa un correo electrónico válido.";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!email) {
+      setError('Por favor ingresa tu correo electrónico.');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError('Correo electrónico inválido.');
+      return;
+    }
+    if (!password) {
+      setError('Por favor ingresa tu contraseña.');
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch('http://localhost:3000/api/auth/login', {
@@ -21,7 +53,13 @@ export function Login({ onLogin }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data.message || 'Error de autenticación');
+        if (data.message === 'Usuario no encontrado' && validateEmail(email)) {
+          setError('El correo electrónico no está registrado.');
+        } else if (data.message === 'Contraseña incorrecta') {
+          setError('La contraseña es incorrecta.');
+        } else {
+          setError(data.message || 'Error de autenticación.');
+        }
       } else {
         // Guardar token en localStorage
         if (data.token) {
@@ -30,7 +68,7 @@ export function Login({ onLogin }) {
         onLogin(data.usuario);
       }
     } catch (err) {
-      setError('No se pudo conectar al servidor');
+      setError('No se pudo conectar al servidor.');
     } finally {
       setLoading(false);
     }
@@ -38,7 +76,7 @@ export function Login({ onLogin }) {
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    setError('Password recovery is not available yet.');
+    setError('La recuperación de contraseña aún no está disponible.');
   };
 
   return (
@@ -46,12 +84,11 @@ export function Login({ onLogin }) {
       <img src={logo} alt="Logo CivilTrack" className="w-24 h-24 mb-2" />
       <h2 className="text-xl font-bold mb-2 text-blue-600">Iniciar sesión</h2>
       <input
-        type="email"
+        type="text"
         placeholder="Correo electrónico"
         value={email}
         onChange={e => setEmail(e.target.value)}
         className="border p-2 rounded w-full"
-        required
       />
       <input
         type="password"
@@ -59,7 +96,6 @@ export function Login({ onLogin }) {
         value={password}
         onChange={e => setPassword(e.target.value)}
         className="border p-2 rounded w-full"
-        required
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <button type="submit" className="bg-blue-500 text-white py-2 rounded w-full hover:bg-blue-600 transition" disabled={loading}>
