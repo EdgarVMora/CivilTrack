@@ -23,6 +23,10 @@ export function Login({ onLogin }) {
       if (!response.ok) {
         setError(data.message || 'Error de autenticación');
       } else {
+        // Guardar token en localStorage
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
         onLogin(data.usuario);
       }
     } catch (err) {
