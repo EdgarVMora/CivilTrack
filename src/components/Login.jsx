@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import logo from '../assets/imagen-20260122-160504-585003df.png';
+import { StatusChecker } from './StatusChecker.jsx';
 
 export function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -80,28 +81,33 @@ export function Login({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 p-6 w-96 bg-white rounded shadow">
-      <img src={logo} alt="Logo CivilTrack" className="w-24 h-24 mb-2" />
-      <h2 className="text-xl font-bold mb-2 text-blue-600">Iniciar sesión</h2>
-      <input
-        type="text"
-        placeholder="Correo electrónico"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        className="border p-2 rounded w-full"
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        className="border p-2 rounded w-full"
-      />
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-      <button type="submit" className="bg-blue-500 text-white py-2 rounded w-full hover:bg-blue-600 transition" disabled={loading}>
-        {loading ? 'Accediendo...' : 'Acceder'}
-      </button>
-      <a href="#" onClick={handleForgotPassword} className="text-blue-500 text-sm mt-2 hover:underline">¿Olvidaste tu contraseña?</a>
-    </form>
+    <div className="relative w-full flex flex-col items-center">
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 p-6 w-96 bg-white rounded shadow z-10">
+        <img src={logo} alt="Logo CivilTrack" className="w-24 h-24 mb-2" />
+        <h2 className="text-xl font-bold mb-2 text-blue-600">Iniciar sesión</h2>
+        <input
+          type="text"
+          placeholder="Correo electrónico"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          className="border p-2 rounded w-full"
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          className="border p-2 rounded w-full"
+        />
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <button type="submit" className="bg-blue-500 text-white py-2 rounded w-full hover:bg-blue-600 transition" disabled={loading}>
+          {loading ? 'Accediendo...' : 'Acceder'}
+        </button>
+        <a href="#" onClick={handleForgotPassword} className="text-blue-500 text-sm mt-2 hover:underline">¿Olvidaste tu contraseña?</a>
+      </form>
+      <div className="fixed bottom-4 right-4 z-0">
+        <StatusChecker />
+      </div>
+    </div>
   );
 }
