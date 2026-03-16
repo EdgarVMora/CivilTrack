@@ -1,6 +1,6 @@
 import React from 'react';
 import { Login } from './components/Login.jsx';
-import { StatusChecker } from './components/StatusChecker.jsx';
+import { Dashboard } from './components/Dashboard.jsx';
 
 function App() {
   const [user, setUser] = React.useState(null);
@@ -33,13 +33,7 @@ function App() {
       {!user ? (
         <Login onLogin={handleLogin} />
       ) : (
-        <div className="flex flex-col items-center gap-4">
-          <p className="text-green-600 font-semibold mb-4">Welcome, {user.nombre}!</p>
-          <StatusChecker />
-          <button onClick={handleLogout} className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
-            Cerrar Sesion 
-          </button>
-        </div>
+        <Dashboard user={user} onLogout={handleLogout} />
       )}
     </div>
   );
