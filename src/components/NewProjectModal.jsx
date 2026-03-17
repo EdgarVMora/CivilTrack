@@ -5,20 +5,28 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
   const [description, setDescription] = useState('');
   const [ubicacion, setUbicacion] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
-  const [photo, setPhoto] = useState(null);
-
-  const handlePhotoChange = (e) => {
-    setPhoto(e.target.files[0]);
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate({ name, description, ubicacion, fechaInicio, photo });
+    // Validación previa
+    if (!name.trim() || name.length > 150) {
+      alert('El nombre es obligatorio y debe tener máximo 150 caracteres.');
+      return;
+    }
+    if (!ubicacion.trim() || ubicacion.length > 200) {
+      alert('La ubicación es obligatoria y debe tener máximo 200 caracteres.');
+      return;
+    }
+    if (!fechaInicio || !/^\d{4}-\d{2}-\d{2}$/.test(fechaInicio)) {
+      alert('La fecha de inicio es obligatoria y debe tener formato YYYY-MM-DD.');
+      return;
+    }
+    // descripcion puede ser vacía o null
+    onCreate({ name: name.trim(), description: description.trim(), ubicacion: ubicacion.trim(), fechaInicio });
     setName('');
     setDescription('');
     setUbicacion('');
     setFechaInicio('');
-    setPhoto(null);
     onClose();
   };
 
@@ -69,13 +77,6 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
             onChange={e => setFechaInicio(e.target.value)}
             className="border p-2 rounded w-full"
             required
-          />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            className="border p-2 rounded w-full"
-            style={{ maxWidth: '100%' }}
           />
           <div className="flex justify-end gap-2 mt-2">
             <button
