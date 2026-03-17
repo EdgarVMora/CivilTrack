@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NewProjectModal } from './NewProjectModal.jsx';
 
 function HamburgerMenu({ user, onLogout }) {
@@ -28,6 +28,36 @@ function HamburgerMenu({ user, onLogout }) {
 }
 
 export function Dashboard({ user, onLogout }) {
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [fetchError, setFetchError] = useState('');
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoadingProjects(true);
+      setFetchError('');
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/projects', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Error fetching projects');
+        }
+        const data = await response.json();
+        setProjects(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setFetchError(err.message);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -40,18 +70,20 @@ export function Dashboard({ user, onLogout }) {
     setSaveSuccess(false);
     try {
       // Generar valores por defecto para los campos requeridos
-      const now = new Date();
-      const fecha_creacion = now.toISOString().slice(0, 19).replace('T', ' ');
       const activo = 1;
-      // id_proyecto e id_creador pueden ser null o generados por el backend
+      // Formatear fecha_inicio a 'YYYY-MM-DD'
+      let fecha_inicio = project.fechaInicio;
+      if (fecha_inicio) {
+        // Si viene en formato 'YYYY-MM-DDTHH:MM', extraer solo la fecha
+        fecha_inicio = fecha_inicio.split('T')[0];
+      }
       const body = {
         id_proyecto: null,
         id_creador: user?.id || null,
         nombre: project.name,
         descripcion: project.description,
         ubicacion: project.ubicacion,
-        fecha_inicio: project.fechaInicio,
-        fecha_creacion,
+        fecha_inicio,
         activo
       };
       const response = await fetch('/api/proyectos', {
@@ -107,16 +139,27 @@ export function Dashboard({ user, onLogout }) {
         {saveError && (
           <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center">{saveError}</div>
         )}
-        {/* Cards grid responsive */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <section className="flex flex-col gap-4 col-span-1 sm:col-span-2 lg:col-span-2">
-            <h2 className="text-2xl font-bold text-blue-700">Bienvenido, {user?.nombre || 'Usuario'}!</h2>
-            <p className="text-gray-600 text-sm">Panel principal de CivilTrack</p>
-            <p className="text-gray-700">Aquí irá el contenido principal del dashboard, accesos rápidos, estadísticas, etc.</p>
-          </section>
-          <section className="flex flex-col gap-4">
-            {/* Aquí puedes agregar widgets, gráficos, etc. */}
-          </section>
+        {/* Cards grid responsive para proyectos */}
+        <div className="my-4">
+          {loadingProjects ? (
+            <div className="text-center text-blue-600">Cargando proyectos...</div>
+          ) : fetchError ? (
+            <div className="text-center text-red-600">{fetchError}</div>
+          ) : projects.length === 0 ? (
+            <div className="text-center text-gray-600">No hay proyectos disponibles.</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projects.map((project) => (
+                <div key={project.id_proyecto || project.id || project.nombre} className="bg-white border rounded shadow p-4 flex flex-col gap-2">
+                  <h4 className="text-lg font-bold text-blue-700">{project.nombre}</h4>
+                  <p className="text-gray-700 text-sm">{project.descripcion}</p>
+                  <p className="text-gray-500 text-xs">Ubicación: {project.ubicacion || 'N/A'}</p>
+                  <p className="text-gray-500 text-xs">Inicio: {project.fecha_inicio ? new Date(project.fecha_inicio).toLocaleDateString() : 'N/A'}</p>
+                  <p className="text-gray-500 text-xs">Estado: {project.activo ? 'Activo' : 'Inactivo'}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         {/* ...existing code... */}
       </div>
