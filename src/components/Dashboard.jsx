@@ -63,6 +63,7 @@ export function Dashboard({ user, onLogout }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const handleCreateProject = async (project) => {
     setSaving(true);
@@ -100,6 +101,8 @@ export function Dashboard({ user, onLogout }) {
         throw new Error(data.message || 'Error saving project');
       }
       setSaveSuccess(true);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2500);
       // Aquí podrías actualizar la lista de proyectos si la tienes
     } catch (err) {
       setSaveError(err.message);
@@ -135,9 +138,17 @@ export function Dashboard({ user, onLogout }) {
       {/* Contenido principal centrado y max-width */}
       <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 md:p-8 bg-white rounded shadow flex flex-col gap-6 mt-4">
         {/* Mensaje de éxito o error al guardar */}
-        {saveSuccess && (
+        {/* Toast flotante de éxito */}
+        {showToast && (
+          <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg transition-all animate-fade-in-out">
+            Proyecto creado correctamente
+          </div>
+        )}
+        {/* Mensaje inline para fallback */}
+        {saveSuccess && !showToast && (
           <div className="bg-green-100 text-green-700 px-4 py-2 rounded mb-2 text-center">Proyecto guardado correctamente.</div>
         )}
+
         {saveError && (
           <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center">{saveError}</div>
         )}
