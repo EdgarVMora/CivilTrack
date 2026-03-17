@@ -86,10 +86,12 @@ export function Dashboard({ user, onLogout }) {
         fecha_inicio,
         activo
       };
-      const response = await fetch('/api/proyectos', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
