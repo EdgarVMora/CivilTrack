@@ -28,11 +28,50 @@ function HamburgerMenu({ user, onLogout }) {
 }
 
 export function Dashboard({ user, onLogout }) {
-  const [modalOpen, setModalOpen] = useState(false);
 
-  const handleCreateProject = (project) => {
-    // Aquí puedes manejar el proyecto creado (enviar a backend, etc.)
-    console.log('Proyecto creado:', project);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleCreateProject = async (project) => {
+    setSaving(true);
+    setSaveError('');
+    setSaveSuccess(false);
+    try {
+      // Generar valores por defecto para los campos requeridos
+      const now = new Date();
+      const fecha_creacion = now.toISOString().slice(0, 19).replace('T', ' ');
+      const activo = 1;
+      // id_proyecto e id_creador pueden ser null o generados por el backend
+      const body = {
+        id_proyecto: null,
+        id_creador: user?.id || null,
+        nombre: project.name,
+        descripcion: project.description,
+        ubicacion: project.ubicacion,
+        fecha_inicio: project.fechaInicio,
+        fecha_creacion,
+        activo
+      };
+      const response = await fetch('/api/proyectos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Error saving project');
+      }
+      setSaveSuccess(true);
+      // Aquí podrías actualizar la lista de proyectos si la tienes
+    } catch (err) {
+      setSaveError(err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -49,8 +88,9 @@ export function Dashboard({ user, onLogout }) {
             <button
               onClick={() => setModalOpen(true)}
               className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded font-semibold hover:bg-blue-700 transition text-sm sm:text-base"
+              disabled={saving}
             >
-              + Nuevo Proyecto
+              {saving ? 'Guardando...' : '+ Nuevo Proyecto'}
             </button>
             <HamburgerMenu user={user} onLogout={onLogout} />
           </div>
@@ -60,6 +100,13 @@ export function Dashboard({ user, onLogout }) {
       <div className="h-20" />
       {/* Contenido principal centrado y max-width */}
       <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 md:p-8 bg-white rounded shadow flex flex-col gap-6 mt-4">
+        {/* Mensaje de éxito o error al guardar */}
+        {saveSuccess && (
+          <div className="bg-green-100 text-green-700 px-4 py-2 rounded mb-2 text-center">Proyecto guardado correctamente.</div>
+        )}
+        {saveError && (
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center">{saveError}</div>
+        )}
         {/* Cards grid responsive */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <section className="flex flex-col gap-4 col-span-1 sm:col-span-2 lg:col-span-2">
