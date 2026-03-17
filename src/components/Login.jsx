@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logo from '../assets/imagen-20260122-160504-585003df.png';
 import { StatusChecker } from './StatusChecker.jsx';
 
@@ -7,6 +8,7 @@ export function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const validateEmail = (email) => {
     // Validación básica de email
@@ -66,7 +68,11 @@ export function Login({ onLogin }) {
         if (data.token) {
           localStorage.setItem('token', data.token);
         }
+        if (data.usuario) {
+          localStorage.setItem('usuario', JSON.stringify(data.usuario));
+        }
         onLogin(data.usuario);
+        navigate('/dashboard');
       }
     } catch (err) {
       setError('No se pudo conectar al servidor.');
