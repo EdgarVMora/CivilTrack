@@ -80,23 +80,34 @@ export function Login({ onLogin }) {
     setError('La recuperación de contraseña aún no está disponible.');
   };
 
+  // Limpiar error al cambiar campos
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (error) setError('');
+  };
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (error) setError('');
+  };
+
   return (
-    <div className="relative w-full flex flex-col items-center">
-      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 p-6 w-96 bg-white rounded shadow z-10">
-        <img src={logo} alt="Logo CivilTrack" className="w-24 h-24 mb-2" />
+    <div className="relative w-full flex flex-col items-center justify-center bg-blue-50 px-2 py-8 min-h-screen">
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4 p-4 sm:p-6 w-full max-w-md bg-white rounded shadow z-10 sm:mx-auto mx-2">
+        <h1 className="text-3xl font-bold text-blue-600 text-center mb-2">CivilTrack</h1>
+        <img src={logo} alt="Logo CivilTrack" className="w-20 h-20 mb-2 sm:w-24 sm:h-24" />
         <h2 className="text-xl font-bold mb-2 text-blue-600">Iniciar sesión</h2>
         <input
           type="text"
           placeholder="Correo electrónico"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={handleEmailChange}
           className="border p-2 rounded w-full"
         />
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
           className="border p-2 rounded w-full"
         />
         {error && <p className="text-red-600 text-sm">{error}</p>}
@@ -106,7 +117,7 @@ export function Login({ onLogin }) {
         <a href="#" onClick={handleForgotPassword} className="text-blue-500 text-sm mt-2 hover:underline">¿Olvidaste tu contraseña?</a>
       </form>
       <div className="fixed bottom-4 right-4 z-0">
-        <StatusChecker />
+        <StatusChecker small />
       </div>
     </div>
   );
