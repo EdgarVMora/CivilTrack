@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 export function NewProjectModal({ isOpen, onClose, onCreate }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [ubicacion, setUbicacion] = useState('');
+  const [fechaInicio, setFechaInicio] = useState('');
   const [photo, setPhoto] = useState(null);
 
   const handlePhotoChange = (e) => {
@@ -11,9 +13,11 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate({ name, description, photo });
+    onCreate({ name, description, ubicacion, fechaInicio, photo });
     setName('');
     setDescription('');
+    setUbicacion('');
+    setFechaInicio('');
     setPhoto(null);
     onClose();
   };
@@ -49,6 +53,22 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
             onChange={e => setDescription(e.target.value)}
             className="border p-2 rounded w-full"
             rows={3}
+          />
+          <input
+            type="text"
+            placeholder="Ubicación"
+            value={ubicacion}
+            onChange={e => setUbicacion(e.target.value)}
+            className="border p-2 rounded w-full"
+            required
+          />
+          <input
+            type="date"
+            placeholder="Fecha de inicio"
+            value={fechaInicio}
+            onChange={e => setFechaInicio(e.target.value)}
+            className="border p-2 rounded w-full"
+            required
           />
           <input
             type="file"
