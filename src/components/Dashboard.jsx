@@ -37,12 +37,9 @@ export function Dashboard({ user, onLogout }) {
       setLoadingProjects(true);
       setFetchError('');
       try {
-        const token = localStorage.getItem('token');
         const response = await fetch('/api/projects', {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          credentials: 'include',
         });
         if (!response.ok) {
           const data = await response.json();
@@ -87,13 +84,12 @@ export function Dashboard({ user, onLogout }) {
         fecha_inicio,
         activo
       };
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(body),
       });
       if (!response.ok) {
