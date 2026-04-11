@@ -1,6 +1,8 @@
 import React from 'react';
 import { Login } from './components/Login.jsx';
 import { Dashboard } from './components/Dashboard.jsx';
+import ProjectDetail from './components/ProjectDetail.jsx';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import {
   fetchCurrentUser,
   readStoredUserProfile,
@@ -57,7 +59,11 @@ function App() {
             <Login onLogin={handleLogin} />
           </div>
         ) : (
-          <Dashboard user={user} onLogout={handleLogout} />
+          <Routes>
+            <Route path="/" element={<Dashboard user={user} onLogout={handleLogout} />} />
+            <Route path="/dashboard" element={<Dashboard user={user} onLogout={handleLogout} />} />
+            <Route path="/proyectos/:id" element={<ProjectDetail />} />
+          </Routes>
         )}
       </div>
     </div>
