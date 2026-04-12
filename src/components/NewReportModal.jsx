@@ -1,14 +1,41 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
-export default function NewReportModal({ isOpen, onClose, onSubmit }) {
+export default function NewReportModal({ isOpen, onClose, projectId }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleTitleChange = (e) => setTitle(e.target.value);
+  const handleDescriptionChange = (e) => setDescription(e.target.value);
+  const handleFileChange = (e) => setFile(e.target.files[0] || null);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // No backend logic, just call onSubmit with form data
-    onSubmit({ title, description, file });
+    const formData = new FormData();
+    formData.append('titulo', title);
+    formData.append('descripcion', description);
+    if (file) formData.append('imagen', file);
+
+    // Verificar el ID antes de enviar
+    console.log('Enviando reporte para projectId:', projectId);
+
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/proyectos/${projectId}/bitacora`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          withCredentials: true,
+        }
+      );
+      console.log('Respuesta backend:', response.data);
+    } catch (error) {
+      console.error('Error al enviar reporte:', error);
+    }
+
     setTitle('');
     setDescription('');
     setFile(null);
@@ -33,14 +60,14 @@ export default function NewReportModal({ isOpen, onClose, onSubmit }) {
             type="text"
             placeholder="Título"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={handleTitleChange}
             className="border rounded p-2"
             required
           />
           <textarea
             placeholder="Descripción"
             value={description}
-            onChange={e => setDescription(e.target.value)}
+            onChange={handleDescriptionChange}
             className="border rounded p-2"
             rows={4}
             required
@@ -48,7 +75,7 @@ export default function NewReportModal({ isOpen, onClose, onSubmit }) {
           <input
             type="file"
             accept="image/*"
-            onChange={e => setFile(e.target.files[0])}
+            onChange={handleFileChange}
             className="border rounded p-2"
           />
           <button
