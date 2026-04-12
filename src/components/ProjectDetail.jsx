@@ -31,7 +31,7 @@ export default function ProjectDetail() {
       <NewReportModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleNewReport}
+        projectId={project.id_proyecto || project.id}
       />
       {/* ...rest of project detail... */}
     </div>
