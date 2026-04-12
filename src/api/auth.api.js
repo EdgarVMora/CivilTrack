@@ -6,7 +6,7 @@ import { AUTH_ME_URL, SESSION_USER_KEY } from '../config/api.js';
  */
 export async function fetchCurrentUser() {
   try {
-    const res = await fetch(AUTH_ME_URL, {
+    const res = await fetch('http://localhost:3000/api/auth/me', {
       method: 'GET',
       credentials: 'include',
     });
