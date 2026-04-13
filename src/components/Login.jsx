@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/imagen-20260122-160504-585003df.png';
 import { StatusChecker } from './StatusChecker.jsx';
+import { API_URL } from '../config/api.js';
 
 export function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -38,7 +39,7 @@ export function Login({ onLogin }) {
       return;
     }
     if (!validateEmail(email)) {
-      setError('Correo electrónico inválido.');
+      setError(getEmailError(email));
       return;
     }
     if (!password) {
@@ -47,11 +48,12 @@ export function Login({ onLogin }) {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ correo: email, password }),
       });
       const data = await response.json();
@@ -64,17 +66,10 @@ export function Login({ onLogin }) {
           setError(data.message || 'Error de autenticación.');
         }
       } else {
-        // Guardar token en localStorage
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-        }
-        if (data.usuario) {
-          localStorage.setItem('usuario', JSON.stringify(data.usuario));
-        }
         onLogin(data.usuario);
         navigate('/dashboard');
       }
-    } catch (err) {
+    } catch {
       setError('No se pudo conectar al servidor.');
     } finally {
       setLoading(false);

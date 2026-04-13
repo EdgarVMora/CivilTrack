@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NewProjectModal } from './NewProjectModal.jsx';
+import { useNavigate } from 'react-router-dom';
 
 function HamburgerMenu({ user, onLogout }) {
   const [open, setOpen] = useState(false);
@@ -28,6 +29,7 @@ function HamburgerMenu({ user, onLogout }) {
 }
 
 export function Dashboard({ user, onLogout }) {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [fetchError, setFetchError] = useState('');
@@ -37,12 +39,9 @@ export function Dashboard({ user, onLogout }) {
       setLoadingProjects(true);
       setFetchError('');
       try {
-        const token = localStorage.getItem('token');
         const response = await fetch('/api/projects', {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          credentials: 'include',
         });
         if (!response.ok) {
           const data = await response.json();
@@ -87,13 +86,12 @@ export function Dashboard({ user, onLogout }) {
         fecha_inicio,
         activo
       };
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(body),
       });
       if (!response.ok) {
@@ -163,7 +161,15 @@ export function Dashboard({ user, onLogout }) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {projects.map((project) => (
-                <div key={project.id_proyecto || project.id || project.nombre} className="bg-white border rounded shadow p-4 flex flex-col gap-2">
+                <div
+                  key={project.id_proyecto || project.id || project.nombre}
+                  className="bg-white border rounded shadow p-4 flex flex-col gap-2 cursor-pointer hover:bg-blue-50 transition"
+                  onClick={() => navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } })}
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } }); }}
+                  aria-label={`Ver detalles de ${project.nombre}`}
+                >
                   <h4 className="text-lg font-bold text-blue-700">{project.nombre}</h4>
                   <p className="text-gray-700 text-sm">{project.descripcion}</p>
                   <p className="text-gray-500 text-xs">Ubicación: {project.ubicacion || 'N/A'}</p>
