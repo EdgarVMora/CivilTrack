@@ -5,6 +5,7 @@ export default function NewReportModal({ isOpen, onClose, projectId }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleTitleChange = (e) => setTitle(e.target.value);
   const handleDescriptionChange = (e) => setDescription(e.target.value);
@@ -12,6 +13,7 @@ export default function NewReportModal({ isOpen, onClose, projectId }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const formData = new FormData();
     formData.append('titulo', title);
     formData.append('descripcion', description);
@@ -34,6 +36,8 @@ export default function NewReportModal({ isOpen, onClose, projectId }) {
       console.log('Respuesta backend:', response.data);
     } catch (error) {
       console.error('Error al enviar reporte:', error);
+    } finally {
+      setLoading(false);
     }
 
     setTitle('');
@@ -80,9 +84,10 @@ export default function NewReportModal({ isOpen, onClose, projectId }) {
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white rounded p-2 hover:bg-blue-700"
+            className="bg-blue-600 text-white rounded p-2 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={loading}
           >
-            Crear Reporte
+            {loading ? 'Cargando...' : 'Crear Reporte'}
           </button>
         </form>
       </div>
