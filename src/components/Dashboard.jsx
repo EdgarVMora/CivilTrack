@@ -110,19 +110,17 @@ export function Dashboard({ user, onLogout }) {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-center bg-blue-50 pb-8 relative">
-      {/* Header fijo en la parte superior, fuera del flujo del contenido */}
-      <header className="w-full fixed top-0 left-0 z-30 bg-blue-50 border-b border-blue-100">
-        <div className="relative w-full max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
-          {/* Título centrado respecto a la página */}
-          <div className="absolute left-0 right-0 flex justify-center pointer-events-none">
-            <h1 className="text-3xl font-bold text-blue-700 text-center pointer-events-auto">CivilTrack</h1>
+    <div className="w-full min-h-screen flex flex-col items-center bg-blue-50 pb-8 relative">
+      {/* Header principal */}
+      <header className="w-full bg-blue-50 border-b border-blue-100 shadow-sm sticky top-0 z-30">
+        <div className="w-full max-w-6xl mx-auto flex items-center justify-between px-4 py-6">
+          <div className="flex-1 flex justify-center">
+            <h1 className="text-3xl sm:text-4xl font-bold text-blue-700 text-center">CIVILTRACK</h1>
           </div>
-          {/* Acciones a la derecha */}
-          <div className="ml-auto flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
             <button
               onClick={() => setModalOpen(true)}
-              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded font-semibold hover:bg-blue-700 transition text-sm sm:text-base"
+              className="bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-6 py-2 rounded-full shadow hover:from-blue-700 hover:to-blue-500 transition text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
               disabled={saving}
             >
               {saving ? 'Guardando...' : '+ Nuevo Proyecto'}
@@ -131,27 +129,21 @@ export function Dashboard({ user, onLogout }) {
           </div>
         </div>
       </header>
-      {/* Espaciador para el header fijo */}
-      <div className="h-20" />
-      {/* Contenido principal centrado y max-width */}
-      <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 md:p-8 bg-white rounded shadow flex flex-col gap-6 mt-4">
-        {/* Mensaje de éxito o error al guardar */}
-        {/* Toast flotante de éxito */}
-        {showToast && (
-          <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg transition-all animate-fade-in-out">
-            Proyecto creado correctamente
-          </div>
-        )}
-        {/* Mensaje inline para fallback */}
+      {/* Toast flotante de éxito */}
+      {showToast && (
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg transition-all animate-fade-in-out">
+          Proyecto creado correctamente
+        </div>
+      )}
+      {/* Mensaje inline para fallback */}
+      <main className="w-full max-w-6xl mx-auto flex flex-col gap-6 mt-8 px-2 sm:px-4 md:px-8">
         {saveSuccess && !showToast && (
           <div className="bg-green-100 text-green-700 px-4 py-2 rounded mb-2 text-center">Proyecto guardado correctamente.</div>
         )}
-
         {saveError && (
           <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center">{saveError}</div>
         )}
-        {/* Cards grid responsive para proyectos */}
-        <div className="my-4">
+        <div className="my-2">
           {loadingProjects ? (
             <div className="text-center text-blue-600">Cargando proyectos...</div>
           ) : fetchError ? (
@@ -159,29 +151,30 @@ export function Dashboard({ user, onLogout }) {
           ) : projects.length === 0 ? (
             <div className="text-center text-gray-600">No hay proyectos disponibles.</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {projects.map((project) => (
                 <div
                   key={project.id_proyecto || project.id || project.nombre}
-                  className="bg-white border rounded shadow p-4 flex flex-col gap-2 cursor-pointer hover:bg-blue-50 transition"
+                  className="bg-white rounded-2xl shadow-lg p-6 flex flex-col gap-3 cursor-pointer border border-blue-100 hover:shadow-2xl hover:scale-[1.025] transition-all duration-200"
                   onClick={() => navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } })}
                   tabIndex={0}
                   role="button"
                   onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } }); }}
                   aria-label={`Ver detalles de ${project.nombre}`}
                 >
-                  <h4 className="text-lg font-bold text-blue-700">{project.nombre}</h4>
-                  <p className="text-gray-700 text-sm">{project.descripcion}</p>
-                  <p className="text-gray-500 text-xs">Ubicación: {project.ubicacion || 'N/A'}</p>
-                  <p className="text-gray-500 text-xs">Inicio: {project.fecha_inicio ? new Date(project.fecha_inicio).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-gray-500 text-xs">Estado: {project.activo ? 'Activo' : 'Inactivo'}</p>
+                  <h4 className="text-2xl font-bold text-blue-700 mb-1 truncate">{project.nombre}</h4>
+                  <p className="text-gray-700 text-base mb-2 line-clamp-3">{project.descripcion}</p>
+                  <div className="flex flex-wrap gap-2 text-gray-500 text-sm">
+                    <div className="bg-blue-50 rounded px-3 py-1 shadow-sm">Ubicación: <span className="font-medium text-gray-700">{project.ubicacion || 'N/A'}</span></div>
+                    <div className="bg-blue-50 rounded px-3 py-1 shadow-sm">Inicio: <span className="font-medium text-gray-700">{project.fecha_inicio ? new Date(project.fecha_inicio).toLocaleDateString() : 'N/A'}</span></div>
+                    <div className="bg-blue-50 rounded px-3 py-1 shadow-sm">Estado: <span className="font-medium text-gray-700">{project.activo ? 'Activo' : 'Inactivo'}</span></div>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-        {/* ...existing code... */}
-      </div>
+      </main>
       <NewProjectModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
