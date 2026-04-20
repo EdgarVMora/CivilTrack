@@ -1,26 +1,45 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { fetchProjectBitacora } from '../api/project.api.js';
 import NewReportModal from './NewReportModal';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-
 
 export default function ProjectDetail() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const project = location.state?.project;
+  const params = useParams();
+  const [project, setProject] = useState(location.state?.project || null);
+  const [bitacora, setBitacora] = useState(Array.isArray(location.state?.project?.bitacora) ? location.state.project.bitacora : []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Fetch bitácora al montar
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!project) return;
+      setLoading(true);
+      setError('');
+      try {
+        const bitacoraData = await fetchProjectBitacora(project.id_proyecto || project.id);
+        setBitacora(Array.isArray(bitacoraData) ? bitacoraData : []);
+      } catch (err) {
+        setError('Error al cargar los reportes del proyecto');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project]);
+
+  // Handler para agregar un nuevo reporte al timeline
+  const handleReportCreated = (nuevoReporte) => {
+    setBitacora(prev => [nuevoReporte, ...(Array.isArray(prev) ? prev : [])]);
+  };
 
   if (!project) {
     return <div className="p-4">No se encontró información del proyecto.</div>;
   }
-  // Estado local para la bitácora (timeline)
-  const [bitacora, setBitacora] = useState(project?.bitacora || []);
-
-  // Handler para agregar un nuevo reporte al timeline
-  const handleReportCreated = (nuevoReporte) => {
-    setBitacora(prev => [nuevoReporte, ...prev]);
-  };
 
   return (
     <div className="min-h-screen bg-blue-50 flex flex-col items-center py-6 px-2 sm:px-4">
@@ -58,7 +77,11 @@ export default function ProjectDetail() {
         <h3 className="text-xl font-bold text-blue-600 mb-6">Reportes del proyecto</h3>
         {/* Línea vertical timeline */}
         <div className="absolute left-6 top-10 bottom-0 w-1 bg-blue-100 rounded-full z-0" />
-        {(bitacora.length === 0) ? (
+        {loading ? (
+          <div className="w-full text-center text-gray-400 py-8">Cargando reportes...</div>
+        ) : error ? (
+          <div className="w-full text-center text-red-400 py-8">{error}</div>
+        ) : (bitacora.length === 0) ? (
           <div className="w-full text-center text-gray-400 py-8">Aún no hay reportes</div>
         ) : (
           <ul className="w-full flex flex-col gap-8 z-10">
@@ -72,20 +95,20 @@ export default function ProjectDetail() {
                 <div className="flex-1 bg-white rounded-2xl shadow-lg p-6 flex flex-col gap-2 hover:shadow-2xl transition-all duration-200">
                   <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
                     <span>
-                      {new Date(report.fecha || report.fecha_creacion || report.createdAt).toLocaleDateString('es-MX', {
+                      {new Date(report.fecha_registro || report.fecha || report.fecha_creacion || report.createdAt).toLocaleDateString('es-MX', {
                         day: '2-digit',
                         month: 'short',
                         year: 'numeric',
                       })}
                     </span>
                     <span className="mx-1">·</span>
-                    <span className="font-medium text-blue-600">{report.usuario || report.creador || report.user || 'Usuario'}</span>
+                    <span className="font-medium text-blue-600">{report.autor || report.usuario || report.creador || report.user || 'Usuario'}</span>
                   </div>
                   <h4 className="text-xl font-bold text-blue-700">{report.titulo || report.titulo_reporte || report.title}</h4>
                   <p className="text-gray-700 text-base mb-2 whitespace-pre-line">{report.descripcion || report.descripcion_reporte || report.description}</p>
-                  {report.imagen || report.imagen_url || report.image ? (
+                  {Array.isArray(report.fotos) && report.fotos[0] ? (
                     <img
-                      src={report.imagen || report.imagen_url || report.image}
+                      src={report.fotos[0]}
                       alt={report.titulo || report.titulo_reporte || report.title}
                       className="w-full max-h-72 object-cover rounded-xl border mt-2"
                     />
