@@ -34,20 +34,20 @@ export default function NewReportModal({ isOpen, onClose, projectId, onReportCre
         }
       );
       console.log('Respuesta backend:', response.data);
-      // Parche temporal: construir objeto completo si la respuesta no lo trae
-      let nuevoReporte = response.data;
-      if (nuevoReporte && (!nuevoReporte.titulo || !nuevoReporte.descripcion)) {
-        nuevoReporte = {
-          id: nuevoReporte.bitacora_id,
-          titulo: title,
-          descripcion: description,
-          imagen: nuevoReporte.url,
-          fecha: new Date().toISOString(),
-          usuario: 'Tú', // O usa el usuario actual si lo tienes disponible
-        };
-      }
-      if (onReportCreated && nuevoReporte) {
-        onReportCreated(nuevoReporte);
+      // Normalizar el objeto para que coincida con la estructura de los reportes del backend
+      const data = response.data;
+      const normalizado = {
+        id_bitacora: data.id_bitacora || data.id || data._id,
+        titulo: data.titulo || title,
+        descripcion: data.descripcion || description,
+        fecha_registro: data.fecha_registro || data.fecha || new Date().toISOString(),
+        autor: data.autor || data.usuario || data.user || 'Tú',
+        fotos: Array.isArray(data.fotos) && data.fotos.length > 0
+          ? data.fotos
+          : (data.fotos ? [data.fotos] : (data.imagen ? [data.imagen] : (data.url ? [data.url] : []))),
+      };
+      if (onReportCreated) {
+        onReportCreated(normalizado);
       }
     } catch (error) {
       console.error('Error al enviar reporte:', error);
