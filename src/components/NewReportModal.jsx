@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-export default function NewReportModal({ isOpen, onClose, projectId }) {
+export default function NewReportModal({ isOpen, onClose, projectId, onReportCreated }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
@@ -34,6 +34,21 @@ export default function NewReportModal({ isOpen, onClose, projectId }) {
         }
       );
       console.log('Respuesta backend:', response.data);
+      // Parche temporal: construir objeto completo si la respuesta no lo trae
+      let nuevoReporte = response.data;
+      if (nuevoReporte && (!nuevoReporte.titulo || !nuevoReporte.descripcion)) {
+        nuevoReporte = {
+          id: nuevoReporte.bitacora_id,
+          titulo: title,
+          descripcion: description,
+          imagen: nuevoReporte.url,
+          fecha: new Date().toISOString(),
+          usuario: 'Tú', // O usa el usuario actual si lo tienes disponible
+        };
+      }
+      if (onReportCreated && nuevoReporte) {
+        onReportCreated(nuevoReporte);
+      }
     } catch (error) {
       console.error('Error al enviar reporte:', error);
     } finally {
