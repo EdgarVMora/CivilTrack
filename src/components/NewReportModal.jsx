@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-export default function NewReportModal({ isOpen, onClose, projectId }) {
+export default function NewReportModal({ isOpen, onClose, projectId, onReportCreated }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
@@ -34,6 +34,21 @@ export default function NewReportModal({ isOpen, onClose, projectId }) {
         }
       );
       console.log('Respuesta backend:', response.data);
+      // Normalizar el objeto para que coincida con la estructura de los reportes del backend
+      const data = response.data;
+      const normalizado = {
+        id_bitacora: data.id_bitacora || data.id || data._id,
+        titulo: data.titulo || title,
+        descripcion: data.descripcion || description,
+        fecha_registro: data.fecha_registro || data.fecha || new Date().toISOString(),
+        autor: data.autor || data.usuario || data.user || 'Tú',
+        fotos: Array.isArray(data.fotos) && data.fotos.length > 0
+          ? data.fotos
+          : (data.fotos ? [data.fotos] : (data.imagen ? [data.imagen] : (data.url ? [data.url] : []))),
+      };
+      if (onReportCreated) {
+        onReportCreated(normalizado);
+      }
     } catch (error) {
       console.error('Error al enviar reporte:', error);
     } finally {
