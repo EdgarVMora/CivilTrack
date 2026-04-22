@@ -148,40 +148,40 @@ export function Dashboard({ user, onLogout }) {
   };
 
   return (
-    <div className="w-full min-h-[100dvh] flex flex-col bg-blue-50"
-         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="w-full min-h-[100dvh] flex flex-col bg-blue-50">
 
       {/* Header sticky */}
       <header
         className="w-full bg-blue-50/90 backdrop-blur-sm border-b border-blue-100 shadow-sm sticky top-0 z-30"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="w-full max-w-4xl mx-auto px-4">
-          {/* Fila 1: título centrado */}
-          <div className="flex items-center justify-center py-3">
-            <h1 className="text-2xl md:text-3xl font-bold text-blue-700 tracking-wide">CIVILTRACK</h1>
-          </div>
-          {/* Fila 2: acciones */}
-          <div className="flex items-center justify-between pb-3 gap-3">
-            <button
-              onClick={() => setModalOpen(true)}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-5 py-2.5 rounded-full shadow hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[44px] text-sm md:text-base"
-              disabled={saving}
-            >
-              {saving ? 'Guardando...' : '+ Nuevo Proyecto'}
-            </button>
-            <button
-              className="w-11 h-11 flex items-center justify-center bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-full transition shrink-0"
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Abrir menú"
-            >
-              <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="20" height="2" rx="1" fill="#374151"/>
-                <rect y="6" width="20" height="2" rx="1" fill="#374151"/>
-                <rect y="12" width="20" height="2" rx="1" fill="#374151"/>
-              </svg>
-            </button>
-          </div>
+        <div className="w-full max-w-4xl mx-auto px-4 flex items-center justify-between py-3 gap-3">
+          {/* Título — centrado en mobile, alineado a la izquierda en iPad */}
+          <h1 className="flex-1 text-center md:text-left text-2xl md:text-3xl font-bold text-blue-700 tracking-wide">
+            CIVILTRACK
+          </h1>
+
+          {/* Botón "Nuevo Proyecto" — solo visible en iPad (md+) */}
+          <button
+            onClick={() => setModalOpen(true)}
+            className="hidden md:flex items-center bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-5 py-2.5 rounded-full shadow hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[44px] text-base whitespace-nowrap"
+            disabled={saving}
+          >
+            {saving ? 'Guardando...' : '+ Nuevo Proyecto'}
+          </button>
+
+          {/* Hamburguesa */}
+          <button
+            className="w-11 h-11 flex items-center justify-center bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-full transition shrink-0"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Abrir menú"
+          >
+            <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="20" height="2" rx="1" fill="#374151"/>
+              <rect y="6" width="20" height="2" rx="1" fill="#374151"/>
+              <rect y="12" width="20" height="2" rx="1" fill="#374151"/>
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -192,8 +192,8 @@ export function Dashboard({ user, onLogout }) {
         </div>
       )}
 
-      {/* Main */}
-      <main className="w-full max-w-4xl mx-auto flex flex-col gap-4 mt-6 px-4 pb-8">
+      {/* Main — pb-32 en mobile para no quedar bajo el FAB */}
+      <main className="w-full max-w-4xl mx-auto flex flex-col gap-4 mt-6 px-4 pb-32 md:pb-10">
         {saveSuccess && !showToast && (
           <div className="bg-green-100 text-green-700 px-4 py-2 rounded-xl text-center text-sm">
             Proyecto guardado correctamente.
@@ -247,6 +247,20 @@ export function Dashboard({ user, onLogout }) {
           </div>
         )}
       </main>
+
+      {/* FAB "Nuevo Proyecto" — solo en mobile (< md) */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 flex justify-center z-40 pointer-events-none"
+        style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
+      >
+        <button
+          onClick={() => setModalOpen(true)}
+          className="pointer-events-auto bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[52px] text-base"
+          disabled={saving}
+        >
+          {saving ? 'Guardando...' : '+ Nuevo Proyecto'}
+        </button>
+      </div>
 
       <Drawer user={user} onLogout={onLogout} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 

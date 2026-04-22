@@ -52,8 +52,7 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-blue-50 flex flex-col"
-         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="min-h-[100dvh] bg-blue-50 flex flex-col">
 
       {/* Header sticky */}
       <header
@@ -61,8 +60,9 @@ export default function ProjectDetail() {
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="w-full max-w-2xl mx-auto flex items-center gap-3 px-4 py-3">
+          {/* Botón Volver — solo visible en iPad (md+) */}
           <button
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-blue-100 shadow-sm text-blue-600 hover:bg-blue-50 active:scale-95 transition shrink-0"
+            className="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-white border border-blue-100 shadow-sm text-blue-600 hover:bg-blue-50 active:scale-95 transition shrink-0"
             onClick={() => navigate(-1)}
             aria-label="Volver"
           >
@@ -70,15 +70,22 @@ export default function ProjectDetail() {
               <path d="M11 14L6 9L11 4" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <div className="flex flex-col min-w-0">
+          <div className="flex flex-col min-w-0 flex-1">
             <span className="text-xs text-gray-400 font-medium">Proyectos</span>
             <h1 className="text-base font-bold text-blue-700 truncate leading-tight">{project.nombre}</h1>
           </div>
+          {/* Botón Nuevo Reporte inline — solo en iPad (md+) */}
+          <button
+            className="hidden md:flex items-center bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-5 py-2 rounded-full shadow hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[40px] text-sm whitespace-nowrap shrink-0"
+            onClick={() => setIsModalOpen(true)}
+          >
+            + Nuevo Reporte
+          </button>
         </div>
       </header>
 
-      {/* Contenido */}
-      <div className="flex flex-col items-center px-4 pt-5 pb-28 gap-6 w-full max-w-2xl mx-auto">
+      {/* Contenido — pb-32 en mobile para no quedar bajo la barra inferior */}
+      <div className="flex flex-col items-center px-4 pt-5 pb-32 md:pb-10 gap-6 w-full max-w-2xl mx-auto">
 
         {/* Card del proyecto */}
         <div className="w-full bg-white rounded-2xl shadow p-5 flex flex-col gap-3">
@@ -168,13 +175,24 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      {/* FAB — Nuevo Reporte */}
+      {/* Barra inferior — solo en mobile (< md) */}
       <div
-        className="fixed bottom-0 left-0 right-0 flex justify-center pb-6 pointer-events-none z-40"
-        style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-blue-50/90 backdrop-blur-sm border-t border-blue-100 flex items-center gap-3 px-4"
+        style={{ paddingTop: '0.75rem', paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
       >
+        {/* Volver */}
         <button
-          className="pointer-events-auto bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-8 py-3.5 rounded-full shadow-xl hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[52px] text-base"
+          className="flex items-center justify-center gap-2 flex-1 py-3 rounded-full bg-white border border-blue-200 text-blue-600 font-semibold shadow-sm hover:bg-blue-50 active:scale-95 transition min-h-[52px] text-base"
+          onClick={() => navigate(-1)}
+        >
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+            <path d="M11 14L6 9L11 4" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Volver
+        </button>
+        {/* Nuevo Reporte */}
+        <button
+          className="flex items-center justify-center flex-[2] py-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold shadow-lg hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[52px] text-base"
           onClick={() => setIsModalOpen(true)}
         >
           + Nuevo Reporte
