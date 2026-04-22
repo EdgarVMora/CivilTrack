@@ -1,10 +1,5 @@
 import { API_URL } from '../config/api.js';
 
-/**
- * Obtiene la bitácora (reportes) de un proyecto por ID.
- * @param {string|number} projectId
- * @returns {Promise<Array>} Lista de reportes
- */
 export async function fetchProjectBitacora(projectId) {
   const res = await fetch(`${API_URL}/proyectos/${projectId}/bitacora`, {
     method: 'GET',
@@ -12,6 +7,19 @@ export async function fetchProjectBitacora(projectId) {
   });
   if (!res.ok) throw new Error('Error fetching project bitácora');
   const data = await res.json();
-  // El backend devuelve { success, proyecto, reportes: [...] }
   return Array.isArray(data.reportes) ? data.reportes : [];
+}
+
+/** Devuelve { project, bitacora } usando el mismo endpoint de bitácora. */
+export async function fetchProjectWithBitacora(projectId) {
+  const res = await fetch(`${API_URL}/proyectos/${projectId}/bitacora`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('Error fetching project');
+  const data = await res.json();
+  return {
+    project: data.proyecto || null,
+    bitacora: Array.isArray(data.reportes) ? data.reportes : [],
+  };
 }

@@ -1,29 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NewProjectModal } from './NewProjectModal.jsx';
 import { useNavigate } from 'react-router-dom';
 
-function HamburgerMenu({ user, onLogout }) {
-  const [open, setOpen] = useState(false);
+function Drawer({ user, onLogout, open, onClose }) {
+  const drawerRef = useRef(null);
+
+  // Cerrar con Escape
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
+  // Bloquear scroll del body cuando está abierto
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!open) return null;
+
+  const initials = user?.nombre
+    ? user.nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'U';
+
   return (
-    <div className="relative">
-      <button
-        className="bg-gray-200 p-2 rounded-full text-gray-700 hover:bg-gray-300 focus:outline-none"
-        onClick={() => setOpen(!open)}
-        aria-label="Menú usuario"
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Overlay */}
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      {/* Panel */}
+      <div
+        ref={drawerRef}
+        className="relative w-72 max-w-[85vw] h-full bg-white shadow-2xl flex flex-col animate-slide-in-right"
+        style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <span className="text-xl">☰</span>
-      </button>
-      {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg z-20 flex flex-col">
-          <div className="px-4 py-2 border-b text-blue-700 font-semibold">{user?.nombre || 'Usuario'}</div>
+        {/* Header del drawer */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100">
+          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+            {initials}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-gray-800 truncate">{user?.nombre || 'Usuario'}</span>
+            <span className="text-xs text-gray-400 truncate">{user?.correo || ''}</span>
+          </div>
           <button
-            className="px-4 py-2 text-left text-red-500 hover:bg-gray-100"
-            onClick={() => { setOpen(false); onLogout(); }}
+            className="ml-auto p-2 text-gray-400 hover:text-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            onClick={onClose}
+            aria-label="Cerrar menú"
           >
+            ✕
+          </button>
+        </div>
+
+        {/* Opciones */}
+        <div className="flex flex-col flex-1 px-3 py-4 gap-1">
+          <button
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-500 hover:bg-red-50 active:bg-red-100 min-h-[44px] font-medium transition"
+            onClick={() => { onClose(); onLogout(); }}
+          >
+            <span className="text-lg">⎋</span>
             Cerrar sesión
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -33,16 +77,19 @@ export function Dashboard({ user, onLogout }) {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [fetchError, setFetchError] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
       setLoadingProjects(true);
       setFetchError('');
       try {
-        const response = await fetch('/api/projects', {
-          method: 'GET',
-          credentials: 'include',
-        });
+        const response = await fetch('/api/projects', { method: 'GET', credentials: 'include' });
         if (!response.ok) {
           const data = await response.json();
           throw new Error(data.message || 'Error fetching projects');
@@ -58,25 +105,13 @@ export function Dashboard({ user, onLogout }) {
     fetchProjects();
   }, []);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-
   const handleCreateProject = async (project) => {
     setSaving(true);
     setSaveError('');
     setSaveSuccess(false);
     try {
-      // Generar valores por defecto para los campos requeridos
-      const activo = 1;
-      // Formatear fecha_inicio a 'YYYY-MM-DD'
       let fecha_inicio = project.fechaInicio;
-      if (fecha_inicio) {
-        // Si viene en formato 'YYYY-MM-DDTHH:MM', extraer solo la fecha
-        fecha_inicio = fecha_inicio.split('T')[0];
-      }
+      if (fecha_inicio) fecha_inicio = fecha_inicio.split('T')[0];
       const body = {
         id_proyecto: null,
         id_creador: user?.id || null,
@@ -84,13 +119,11 @@ export function Dashboard({ user, onLogout }) {
         descripcion: project.description,
         ubicacion: project.ubicacion,
         fecha_inicio,
-        activo
+        activo: 1,
       };
       const response = await fetch('/api/projects', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(body),
       });
@@ -101,7 +134,12 @@ export function Dashboard({ user, onLogout }) {
       setSaveSuccess(true);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
-      // Aquí podrías actualizar la lista de proyectos si la tienes
+      // Refetch para ver el nuevo proyecto
+      const res2 = await fetch('/api/projects', { credentials: 'include' });
+      if (res2.ok) {
+        const updated = await res2.json();
+        setProjects(Array.isArray(updated) ? updated : []);
+      }
     } catch (err) {
       setSaveError(err.message);
     } finally {
@@ -110,71 +148,108 @@ export function Dashboard({ user, onLogout }) {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center bg-blue-50 pb-8 relative">
-      {/* Header principal */}
-      <header className="w-full bg-blue-50 border-b border-blue-100 shadow-sm sticky top-0 z-30">
-        <div className="w-full max-w-6xl mx-auto flex items-center justify-between px-4 py-6">
-          <div className="flex-1 flex justify-center">
-            <h1 className="text-3xl sm:text-4xl font-bold text-blue-700 text-center">CIVILTRACK</h1>
+    <div className="w-full min-h-[100dvh] flex flex-col bg-blue-50"
+         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+
+      {/* Header sticky */}
+      <header
+        className="w-full bg-blue-50/90 backdrop-blur-sm border-b border-blue-100 shadow-sm sticky top-0 z-30"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <div className="w-full max-w-4xl mx-auto px-4">
+          {/* Fila 1: título centrado */}
+          <div className="flex items-center justify-center py-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-blue-700 tracking-wide">CIVILTRACK</h1>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+          {/* Fila 2: acciones */}
+          <div className="flex items-center justify-between pb-3 gap-3">
             <button
               onClick={() => setModalOpen(true)}
-              className="bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-6 py-2 rounded-full shadow hover:from-blue-700 hover:to-blue-500 transition text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-5 py-2.5 rounded-full shadow hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[44px] text-sm md:text-base"
               disabled={saving}
             >
               {saving ? 'Guardando...' : '+ Nuevo Proyecto'}
             </button>
-            <HamburgerMenu user={user} onLogout={onLogout} />
+            <button
+              className="w-11 h-11 flex items-center justify-center bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-full transition shrink-0"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Abrir menú"
+            >
+              <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="20" height="2" rx="1" fill="#374151"/>
+                <rect y="6" width="20" height="2" rx="1" fill="#374151"/>
+                <rect y="12" width="20" height="2" rx="1" fill="#374151"/>
+              </svg>
+            </button>
           </div>
         </div>
       </header>
-      {/* Toast flotante de éxito */}
+
+      {/* Toast */}
       {showToast && (
-        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg transition-all animate-fade-in-out">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg animate-fade-in-out text-sm font-medium">
           Proyecto creado correctamente
         </div>
       )}
-      {/* Mensaje inline para fallback */}
-      <main className="w-full max-w-6xl mx-auto flex flex-col gap-6 mt-8 px-2 sm:px-4 md:px-8">
+
+      {/* Main */}
+      <main className="w-full max-w-4xl mx-auto flex flex-col gap-4 mt-6 px-4 pb-8">
         {saveSuccess && !showToast && (
-          <div className="bg-green-100 text-green-700 px-4 py-2 rounded mb-2 text-center">Proyecto guardado correctamente.</div>
+          <div className="bg-green-100 text-green-700 px-4 py-2 rounded-xl text-center text-sm">
+            Proyecto guardado correctamente.
+          </div>
         )}
         {saveError && (
-          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center">{saveError}</div>
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded-xl text-center text-sm">{saveError}</div>
         )}
-        <div className="my-2">
-          {loadingProjects ? (
-            <div className="text-center text-blue-600">Cargando proyectos...</div>
-          ) : fetchError ? (
-            <div className="text-center text-red-600">{fetchError}</div>
-          ) : projects.length === 0 ? (
-            <div className="text-center text-gray-600">No hay proyectos disponibles.</div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects.map((project) => (
-                <div
-                  key={project.id_proyecto || project.id || project.nombre}
-                  className="bg-white rounded-2xl shadow-lg p-6 flex flex-col gap-3 cursor-pointer border border-blue-100 hover:shadow-2xl hover:scale-[1.025] transition-all duration-200"
-                  onClick={() => navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } })}
-                  tabIndex={0}
-                  role="button"
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } }); }}
-                  aria-label={`Ver detalles de ${project.nombre}`}
-                >
-                  <h4 className="text-2xl font-bold text-blue-700 mb-1 truncate">{project.nombre}</h4>
-                  <p className="text-gray-700 text-base mb-2 line-clamp-3">{project.descripcion}</p>
-                  <div className="flex flex-wrap gap-2 text-gray-500 text-sm">
-                    <div className="bg-blue-50 rounded px-3 py-1 shadow-sm">Ubicación: <span className="font-medium text-gray-700">{project.ubicacion || 'N/A'}</span></div>
-                    <div className="bg-blue-50 rounded px-3 py-1 shadow-sm">Inicio: <span className="font-medium text-gray-700">{project.fecha_inicio ? new Date(project.fecha_inicio).toLocaleDateString() : 'N/A'}</span></div>
-                    <div className="bg-blue-50 rounded px-3 py-1 shadow-sm">Estado: <span className="font-medium text-gray-700">{project.activo ? 'Activo' : 'Inactivo'}</span></div>
-                  </div>
+
+        {loadingProjects ? (
+          <div className="text-center text-blue-600 py-12">Cargando proyectos...</div>
+        ) : fetchError ? (
+          <div className="text-center text-red-600 py-8">{fetchError}</div>
+        ) : projects.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <span className="text-4xl">🏗️</span>
+            <p className="text-gray-500 text-center text-base">Aún no hay proyectos.<br />¡Crea el primero!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {projects.map((project) => (
+              <div
+                key={project.id_proyecto || project.id || project.nombre}
+                className="bg-white rounded-2xl shadow p-5 flex flex-col gap-3 cursor-pointer border border-blue-50 hover:shadow-lg active:scale-[0.98] transition-all duration-150"
+                onClick={() => navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } })}
+                tabIndex={0}
+                role="button"
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ')
+                    navigate(`/proyectos/${project.id_proyecto || project.id || project.nombre}`, { state: { project } });
+                }}
+                aria-label={`Ver detalles de ${project.nombre}`}
+              >
+                <h4 className="text-xl font-bold text-blue-700 leading-snug">{project.nombre}</h4>
+                <p className="text-gray-600 text-sm line-clamp-2">{project.descripcion}</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  <span className="bg-blue-50 text-gray-600 text-xs rounded-lg px-3 py-1">
+                    📍 <span className="font-medium text-gray-700">{project.ubicacion || 'N/A'}</span>
+                  </span>
+                  <span className="bg-blue-50 text-gray-600 text-xs rounded-lg px-3 py-1">
+                    Inicio: <span className="font-medium text-gray-700">
+                      {project.fecha_inicio ? new Date(project.fecha_inicio).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </span>
+                  <span className={`text-xs rounded-lg px-3 py-1 font-medium ${project.activo ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {project.activo ? 'Activo' : 'Inactivo'}
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
+
+      <Drawer user={user} onLogout={onLogout} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
       <NewProjectModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

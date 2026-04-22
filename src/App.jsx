@@ -2,7 +2,7 @@ import React from 'react';
 import { Login } from './components/Login.jsx';
 import { Dashboard } from './components/Dashboard.jsx';
 import ProjectDetail from './components/ProjectDetail.jsx';
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import {
   fetchCurrentUser,
   readStoredUserProfile,
