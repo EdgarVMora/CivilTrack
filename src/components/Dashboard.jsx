@@ -400,6 +400,7 @@ export function Dashboard({ user, onLogout, darkMode, toggleDarkMode }) {
         onClose={() => setEditModalProject(null)}
         onSave={handleEdit}
         project={editModalProject}
+        loading={saving}
       />
 
       <DeleteConfirmModal
