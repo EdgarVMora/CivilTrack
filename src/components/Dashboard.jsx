@@ -91,6 +91,32 @@ function Drawer({ user, onLogout, open, onClose, darkMode, toggleDarkMode }) {
   );
 }
 
+function ProjectCardSkeleton() {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col overflow-hidden animate-pulse">
+      <div className="h-1 bg-gray-200 dark:bg-gray-700 w-full" />
+      <div className="flex flex-col gap-2.5 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-lg flex-1" />
+          <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full shrink-0" />
+        </div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4" />
+        <div className="flex gap-4 mt-0.5">
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-lg w-24" />
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-lg w-20" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between border-t border-gray-50 dark:border-gray-700 px-4 py-2.5">
+        <div className="flex gap-2">
+          <div className="h-8 w-14 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+          <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+        </div>
+        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
 function ProjectCard({ project, onNavigate, onEdit, onDelete }) {
   const isActive = !!project.activo;
   const fecha = project.fecha_inicio
@@ -190,6 +216,7 @@ export function Dashboard({ user, onLogout, darkMode, toggleDarkMode }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null); // { message, type: 'success'|'error' }
+  const [filter, setFilter] = useState('all'); // 'all' | 'active' | 'inactive'
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -337,7 +364,9 @@ export function Dashboard({ user, onLogout, darkMode, toggleDarkMode }) {
       {/* Main */}
       <main className="w-full max-w-4xl mx-auto flex flex-col gap-4 mt-6 px-4 pb-32 md:pb-10">
         {loadingProjects ? (
-          <div className="text-center text-blue-600 dark:text-blue-400 py-16">Cargando proyectos...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => <ProjectCardSkeleton key={i} />)}
+          </div>
         ) : fetchError ? (
           <div className="text-center text-red-500 py-8 text-sm">{fetchError}</div>
         ) : projects.length === 0 ? (
@@ -347,22 +376,64 @@ export function Dashboard({ user, onLogout, darkMode, toggleDarkMode }) {
             </div>
             <p className="text-gray-400 dark:text-gray-500 text-sm text-center">Aún no hay proyectos.<br />Crea el primero.</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id_proyecto || project.id || project.nombre}
-                project={project}
-                onNavigate={() => navigate(
-                  `/proyectos/${project.id_proyecto || project.id || project.nombre}`,
-                  { state: { project } }
-                )}
-                onEdit={() => setEditModalProject(project)}
-                onDelete={() => setDeleteModalProject(project)}
-              />
-            ))}
-          </div>
-        )}
+        ) : (() => {
+          const filtered = projects.filter(p =>
+            filter === 'active' ? !!p.activo :
+            filter === 'inactive' ? !p.activo : true
+          );
+          return (
+            <>
+              {/* Barra de filtros */}
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  {[
+                    { value: 'all',      label: 'Todos' },
+                    { value: 'active',   label: 'Activos' },
+                    { value: 'inactive', label: 'Inactivos' },
+                  ].map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => setFilter(value)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                        filter === value
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  {filtered.length} {filtered.length === 1 ? 'proyecto' : 'proyectos'}
+                </span>
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-2">
+                  <p className="text-gray-400 dark:text-gray-500 text-sm text-center">
+                    No hay proyectos {filter === 'active' ? 'activos' : 'inactivos'}.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filtered.map((project) => (
+                    <ProjectCard
+                      key={project.id_proyecto || project.id || project.nombre}
+                      project={project}
+                      onNavigate={() => navigate(
+                        `/proyectos/${project.id_proyecto || project.id || project.nombre}`,
+                        { state: { project } }
+                      )}
+                      onEdit={() => setEditModalProject(project)}
+                      onDelete={() => setDeleteModalProject(project)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </main>
 
       {/* FAB mobile */}

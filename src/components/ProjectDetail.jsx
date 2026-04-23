@@ -3,6 +3,22 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchProjectWithBitacora } from '../api/project.api.js';
 import NewReportModal from './NewReportModal';
 
+function ReportCardSkeleton() {
+  return (
+    <li className="flex gap-4">
+      <div className="flex flex-col items-center pt-2 shrink-0">
+        <div className="w-[14px] h-[14px] bg-blue-200 dark:bg-blue-900 rounded-full" />
+      </div>
+      <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl p-4 flex flex-col gap-3 animate-pulse">
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-lg w-2/5" />
+        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-lg w-3/4" />
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-full" />
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-2/3" />
+      </div>
+    </li>
+  );
+}
+
 export default function ProjectDetail() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
@@ -127,7 +143,12 @@ export default function ProjectDetail() {
           <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-5">Reportes del proyecto</h3>
 
           {loading ? (
-            <div className="text-center text-gray-400 dark:text-gray-500 py-12">Cargando reportes...</div>
+            <div className="relative flex flex-col gap-6">
+              <div className="absolute left-[18px] top-3 bottom-3 w-0.5 bg-blue-100 dark:bg-blue-900/50 rounded-full z-0" />
+              <ul className="flex flex-col gap-6 z-10">
+                {Array.from({ length: 3 }).map((_, i) => <ReportCardSkeleton key={i} />)}
+              </ul>
+            </div>
           ) : error ? (
             <div className="text-center text-red-400 py-8">{error}</div>
           ) : bitacora.length === 0 ? (
@@ -173,14 +194,31 @@ export default function ProjectDetail() {
                         <p className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-line">
                           {report.descripcion || report.descripcion_reporte || report.description}
                         </p>
-                        {Array.isArray(report.fotos) && report.fotos.length > 0 && report.fotos[0] && (
-                          <img
-                            src={report.fotos[0]}
-                            alt={report.titulo || report.titulo_reporte || report.title}
-                            className="w-full aspect-video object-cover rounded-xl border border-gray-100 dark:border-gray-700 mt-1"
-                            onError={e => { e.target.style.display = 'none'; }}
-                          />
-                        )}
+                        {(() => {
+                          const fotos = (Array.isArray(report.fotos) ? report.fotos : []).filter(Boolean);
+                          if (fotos.length === 0) return null;
+                          if (fotos.length === 1) return (
+                            <img
+                              src={fotos[0]}
+                              alt={report.titulo || report.titulo_reporte || report.title}
+                              className="w-full aspect-video object-cover rounded-xl border border-gray-100 dark:border-gray-700 mt-1"
+                              onError={e => { e.target.style.display = 'none'; }}
+                            />
+                          );
+                          return (
+                            <div className="grid grid-cols-2 gap-1 mt-1">
+                              {fotos.map((foto, fi) => (
+                                <img
+                                  key={fi}
+                                  src={foto}
+                                  alt={`Foto ${fi + 1}`}
+                                  className="w-full aspect-square object-cover rounded-xl border border-gray-100 dark:border-gray-700"
+                                  onError={e => { e.target.style.display = 'none'; }}
+                                />
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </li>
                   );

@@ -44,6 +44,7 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
   const inputBase = "border py-3 px-4 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition";
   const inputNormal = `${inputBase} border-gray-300 dark:border-gray-600`;
   const inputError  = `${inputBase} border-red-400 dark:border-red-500`;
+  const labelClass  = "text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide";
 
   return (
     <div
@@ -76,9 +77,10 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 py-5 overflow-y-auto max-h-[75dvh]">
 
           <div className="flex flex-col gap-1">
+            <label className={labelClass}>Nombre del proyecto</label>
             <input
               type="text"
-              placeholder="Nombre del proyecto"
+              placeholder="Ej: Torre Residencial Norte"
               value={name}
               onChange={e => { setName(e.target.value); if (errors.name) setErrors(p => ({ ...p, name: '' })); }}
               className={errors.name ? inputError : inputNormal}
@@ -86,18 +88,22 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
             {errors.name && <p className="text-red-500 dark:text-red-400 text-xs px-1">{errors.name}</p>}
           </div>
 
-          <textarea
-            placeholder="Descripción (opcional)"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            className={`${inputNormal} resize-none`}
-            rows={3}
-          />
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>Descripción <span className="normal-case font-normal text-gray-400 dark:text-gray-500">(opcional)</span></label>
+            <textarea
+              placeholder="Describe el alcance del proyecto..."
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              className={`${inputNormal} resize-none`}
+              rows={3}
+            />
+          </div>
 
           <div className="flex flex-col gap-1">
+            <label className={labelClass}>Ubicación</label>
             <input
               type="text"
-              placeholder="Ubicación"
+              placeholder="Ej: Av. Insurgentes 1234, CDMX"
               value={ubicacion}
               onChange={e => { setUbicacion(e.target.value); if (errors.ubicacion) setErrors(p => ({ ...p, ubicacion: '' })); }}
               className={errors.ubicacion ? inputError : inputNormal}
@@ -106,6 +112,7 @@ export function NewProjectModal({ isOpen, onClose, onCreate }) {
           </div>
 
           <div className="flex flex-col gap-1">
+            <label className={labelClass}>Fecha de inicio</label>
             <input
               type="date"
               value={fechaInicio}
