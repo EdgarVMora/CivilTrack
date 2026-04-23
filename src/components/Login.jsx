@@ -65,32 +65,32 @@ export function Login({ onLogin }) {
   const handlePasswordChange = (e) => { setPassword(e.target.value); if (error) setError(''); };
 
   return (
-    <div className="relative w-full flex flex-col items-center justify-center bg-blue-50 px-4 min-h-[100dvh]"
+    <div className="relative w-full flex flex-col items-center justify-center bg-blue-50 dark:bg-gray-900 px-4 min-h-[100dvh]"
          style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col items-center gap-4 p-6 w-full max-w-sm bg-white rounded-2xl shadow-lg"
+        className="flex flex-col items-center gap-4 p-6 w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-lg"
       >
-        <h1 className="text-3xl font-bold text-blue-600 text-center">CivilTrack</h1>
+        <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400 text-center">CivilTrack</h1>
         <img src={logo} alt="Logo CivilTrack" className="w-16 h-16 md:w-20 md:h-20" />
-        <h2 className="text-xl font-bold text-blue-600">Iniciar sesión</h2>
+        <h2 className="text-xl font-bold text-blue-600 dark:text-blue-400">Iniciar sesión</h2>
 
         <input
           type="text"
           placeholder="Correo electrónico"
           value={email}
           onChange={handleEmailChange}
-          className="border border-gray-300 py-3 px-4 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 py-3 px-4 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500"
         />
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
           onChange={handlePasswordChange}
-          className="border border-gray-300 py-3 px-4 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 py-3 px-4 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500"
         />
 
-        {error && <p className="text-red-600 text-sm w-full">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm w-full">{error}</p>}
 
         <button
           type="submit"
@@ -103,7 +103,7 @@ export function Login({ onLogin }) {
         <a
           href="#"
           onClick={handleForgotPassword}
-          className="text-blue-500 text-sm hover:underline"
+          className="text-blue-500 dark:text-blue-400 text-sm hover:underline"
         >
           ¿Olvidaste tu contraseña?
         </a>

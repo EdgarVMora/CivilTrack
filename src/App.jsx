@@ -9,10 +9,12 @@ import {
   persistUserProfile,
   clearStoredUserProfile,
 } from './api/auth.api.js';
+import { useDarkMode } from './hooks/useDarkMode.js';
 
 function App() {
   const [user, setUser] = React.useState(null);
   const [sessionChecked, setSessionChecked] = React.useState(false);
+  const [darkMode, toggleDarkMode] = useDarkMode();
 
   React.useEffect(() => {
     let cancelled = false;
@@ -50,18 +52,18 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-blue-50 dark:bg-gray-900 flex flex-col items-center justify-center">
       <div className="w-full flex-1 flex items-center justify-center">
         {!sessionChecked ? (
-          <p className="text-blue-600">Cargando sesión...</p>
+          <p className="text-blue-600 dark:text-blue-400">Cargando sesión...</p>
         ) : !user ? (
           <div className="w-full flex flex-col items-center">
             <Login onLogin={handleLogin} />
           </div>
         ) : (
           <Routes>
-            <Route path="/" element={<Dashboard user={user} onLogout={handleLogout} />} />
-            <Route path="/dashboard" element={<Dashboard user={user} onLogout={handleLogout} />} />
+            <Route path="/" element={<Dashboard user={user} onLogout={handleLogout} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />} />
+            <Route path="/dashboard" element={<Dashboard user={user} onLogout={handleLogout} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />} />
             <Route path="/proyectos/:id" element={<ProjectDetail />} />
           </Routes>
         )}
