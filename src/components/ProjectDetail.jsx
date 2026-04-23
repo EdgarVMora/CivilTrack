@@ -12,6 +12,12 @@ export default function ProjectDetail() {
   const [bitacora, setBitacora] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 2800);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +41,7 @@ export default function ProjectDetail() {
 
   const handleReportCreated = (nuevoReporte) => {
     setBitacora(prev => [nuevoReporte, ...(Array.isArray(prev) ? prev : [])]);
+    showToast('Reporte creado correctamente');
   };
 
   if (!project && !loading) {
@@ -83,6 +90,15 @@ export default function ProjectDetail() {
           </button>
         </div>
       </header>
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-lg text-sm font-medium text-white animate-fade-in-out ${
+          toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>
+          {toast.message}
+        </div>
+      )}
 
       {/* Contenido — pb-32 en mobile para no quedar bajo la barra inferior */}
       <div className="flex flex-col items-center px-4 pt-5 pb-32 md:pb-10 gap-6 w-full max-w-2xl mx-auto">
