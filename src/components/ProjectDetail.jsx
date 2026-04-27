@@ -48,6 +48,16 @@ export default function ProjectDetail() {
       } catch {
         setError('Error al cargar los reportes del proyecto');
       } finally {
+          <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+            <h3 className="text-xl font-bold text-blue-600">Reportes del proyecto</h3>
+            <button
+              className="bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold px-6 py-3 rounded-full shadow-lg hover:from-green-600 hover:to-blue-600 transition text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-green-300"
+              style={{ minWidth: 220 }}
+              onClick={() => alert('Funcionalidad de exportar PDF próximamente')}
+            >
+              📄 Descargar Reporte PDF
+            </button>
+          </div>
         setLoading(false);
       }
     };
@@ -140,7 +150,16 @@ export default function ProjectDetail() {
 
         {/* Sección timeline */}
         <div className="w-full">
-          <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-5">Reportes del proyecto</h3>
+          <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
+            <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400">Reportes del proyecto</h3>
+            <button
+              className="bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold px-6 py-3 rounded-full shadow-lg hover:from-green-600 hover:to-blue-600 transition text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-green-300"
+              style={{ minWidth: 220 }}
+              onClick={() => alert('Funcionalidad de exportar PDF próximamente')}
+            >
+              📄 Descargar Reporte PDF
+            </button>
+          </div>
 
           {loading ? (
             <div className="relative flex flex-col gap-6">
