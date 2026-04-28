@@ -30,6 +30,7 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -41,6 +42,7 @@ export default function ProjectDetail() {
     const projectId = project?.id_proyecto || project?.id || id;
     let objectUrl = null;
     try {
+      setPdfLoading(true);
       const res = await fetch(getBitacoraPdfUrl(projectId), {
         method: 'GET',
         credentials: 'include',
@@ -63,6 +65,7 @@ export default function ProjectDetail() {
       if (objectUrl) {
         window.URL.revokeObjectURL(objectUrl);
       }
+      setPdfLoading(false);
     }
   };
 
@@ -182,10 +185,16 @@ export default function ProjectDetail() {
               className="bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold px-6 py-3 rounded-full shadow-lg hover:from-green-600 hover:to-blue-600 transition text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-green-300"
               style={{ minWidth: 220 }}
               onClick={handleDownloadPDF}
+              disabled={pdfLoading}
             >
-              📄 Descargar Reporte PDF
+              {pdfLoading ? 'Generando PDF...' : '📄 Descargar Reporte PDF'}
             </button>
           </div>
+          {pdfLoading && (
+            <p className="text-sm text-blue-600 dark:text-blue-400 mb-4">
+              Generando PDF, por favor espere...
+            </p>
+          )}
 
           {loading ? (
             <div className="relative flex flex-col gap-6">
