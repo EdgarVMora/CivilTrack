@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchProjectWithBitacora } from '../api/project.api.js';
+import { getBitacoraPdfUrl } from '../config/api.js';
 import NewReportModal from './NewReportModal';
 
 function ReportCardSkeleton() {
@@ -29,10 +30,43 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2800);
+  };
+
+  // Descarga forzada con Blob: fetch + credentials → blob → object URL → <a> oculto → click → revoke.
+  const handleDownloadPDF = async () => {
+    const projectId = project?.id_proyecto || project?.id || id;
+    let objectUrl = null;
+    try {
+      setPdfLoading(true);
+      const res = await fetch(getBitacoraPdfUrl(projectId), {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('No se pudo descargar el PDF');
+      const blob = await res.blob();
+      objectUrl = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `reporte_${projectId}.pdf`;
+      a.rel = 'noopener';
+      a.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      showToast('Error al descargar PDF', 'error');
+    } finally {
+      if (objectUrl) {
+        window.URL.revokeObjectURL(objectUrl);
+      }
+      setPdfLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -52,7 +86,7 @@ export default function ProjectDetail() {
       }
     };
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleReportCreated = (nuevoReporte) => {
@@ -60,11 +94,20 @@ export default function ProjectDetail() {
     showToast('Reporte creado correctamente');
   };
 
+  if (!project && loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-blue-50 dark:bg-gray-900 p-8 gap-4">
+        <p className="text-blue-600 dark:text-blue-400">Cargando proyecto...</p>
+      </div>
+    );
+  }
+
   if (!project && !loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-blue-50 dark:bg-gray-900 p-8 gap-4">
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-blue-50 dark:bg-gray-900 p-8 gap-4">
         <p className="text-gray-500 dark:text-gray-400 text-center">No se encontró información del proyecto.</p>
         <button
+          type="button"
           className="text-blue-600 dark:text-blue-400 font-semibold underline"
           onClick={() => navigate(-1)}
         >
@@ -75,16 +118,15 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-blue-50 dark:bg-gray-900 flex flex-col">
+    <div className="min-h-dvh bg-blue-50 dark:bg-gray-900 flex flex-col">
 
-      {/* Header sticky */}
       <header
         className="sticky top-0 z-30 w-full bg-blue-50/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-blue-100 dark:border-gray-700 shadow-sm"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="w-full max-w-2xl mx-auto flex items-center gap-3 px-4 py-3">
-          {/* Botón Volver — solo visible en iPad (md+) */}
           <button
+            type="button"
             className="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-blue-100 dark:border-gray-700 shadow-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 active:scale-95 transition shrink-0"
             onClick={() => navigate(-1)}
             aria-label="Volver"
@@ -97,8 +139,8 @@ export default function ProjectDetail() {
             <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Proyectos</span>
             <h1 className="text-base font-bold text-blue-700 dark:text-blue-400 truncate leading-tight">{project.nombre}</h1>
           </div>
-          {/* Botón Nuevo Reporte inline — solo en iPad (md+) */}
           <button
+            type="button"
             className="hidden md:flex items-center bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold px-5 py-2 rounded-full shadow hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[40px] text-sm whitespace-nowrap shrink-0"
             onClick={() => setIsModalOpen(true)}
           >
@@ -107,7 +149,6 @@ export default function ProjectDetail() {
         </div>
       </header>
 
-      {/* Toast */}
       {toast && (
         <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full shadow-lg text-sm font-medium text-white animate-fade-in-out ${
           toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
@@ -116,10 +157,8 @@ export default function ProjectDetail() {
         </div>
       )}
 
-      {/* Contenido — pb-32 en mobile para no quedar bajo la barra inferior */}
       <div className="flex flex-col items-center px-4 pt-5 pb-32 md:pb-10 gap-6 w-full max-w-2xl mx-auto">
 
-        {/* Card del proyecto */}
         <div className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow p-5 flex flex-col gap-3">
           <h2 className="text-2xl font-bold text-blue-700 dark:text-blue-400 leading-snug">{project.nombre}</h2>
           <p className="text-gray-600 dark:text-gray-300 text-base whitespace-pre-line">{project.descripcion}</p>
@@ -138,9 +177,24 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        {/* Sección timeline */}
         <div className="w-full">
-          <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-5">Reportes del proyecto</h3>
+          <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
+            <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400">Reportes del proyecto</h3>
+            <button
+              type="button"
+              className="bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold px-6 py-3 rounded-full shadow-lg hover:from-green-600 hover:to-blue-600 transition text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-green-300"
+              style={{ minWidth: 220 }}
+              onClick={handleDownloadPDF}
+              disabled={pdfLoading}
+            >
+              {pdfLoading ? 'Generando PDF...' : '📄 Descargar Reporte PDF'}
+            </button>
+          </div>
+          {pdfLoading && (
+            <p className="text-sm text-blue-600 dark:text-blue-400 mb-4">
+              Generando PDF, por favor espere...
+            </p>
+          )}
 
           {loading ? (
             <div className="relative flex flex-col gap-6">
@@ -160,7 +214,6 @@ export default function ProjectDetail() {
             </div>
           ) : (
             <div className="relative flex flex-col gap-6">
-              {/* Línea vertical */}
               <div className="absolute left-[18px] top-3 bottom-3 w-0.5 bg-blue-100 dark:bg-blue-900/50 rounded-full z-0" />
               <ul className="flex flex-col gap-6 z-10">
                 {bitacora.map((report, idx) => {
@@ -175,11 +228,9 @@ export default function ProjectDetail() {
                   }
                   return (
                     <li key={report.id || report.id_bitacora || idx} className="flex gap-4 group">
-                      {/* Dot */}
                       <div className="flex flex-col items-center pt-2 shrink-0">
                         <div className="w-[14px] h-[14px] bg-blue-500 rounded-full border-2 border-white dark:border-gray-900 shadow-md z-10 group-hover:scale-110 transition" />
                       </div>
-                      {/* Card */}
                       <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow p-4 flex flex-col gap-2 hover:shadow-lg transition-all duration-150">
                         <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
                           <span>{fechaFormateada || 'Sin fecha'}</span>
@@ -229,13 +280,12 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      {/* Barra inferior — solo en mobile (< md) */}
       <div
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-blue-50/90 dark:bg-gray-900/90 backdrop-blur-sm border-t border-blue-100 dark:border-gray-700 flex items-center gap-3 px-4"
         style={{ paddingTop: '0.75rem', paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
       >
-        {/* Volver */}
         <button
+          type="button"
           className="flex items-center justify-center gap-2 flex-1 py-3 rounded-full bg-white dark:bg-gray-800 border border-blue-200 dark:border-gray-600 text-blue-600 dark:text-blue-400 font-semibold shadow-sm hover:bg-blue-50 dark:hover:bg-gray-700 active:scale-95 transition min-h-[52px] text-base"
           onClick={() => navigate(-1)}
         >
@@ -244,8 +294,8 @@ export default function ProjectDetail() {
           </svg>
           Volver
         </button>
-        {/* Nuevo Reporte */}
         <button
+          type="button"
           className="flex items-center justify-center flex-[2] py-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold shadow-lg hover:from-blue-700 hover:to-blue-500 active:scale-95 transition min-h-[52px] text-base"
           onClick={() => setIsModalOpen(true)}
         >
