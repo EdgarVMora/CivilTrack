@@ -36,27 +36,33 @@ export default function ProjectDetail() {
     setTimeout(() => setToast(null), 2800);
   };
 
-  // Cookie httpOnly: no usar <a href="/api/..."> directo. Fetch + credentials + blob
-  // (equivalente a Axios responseType: 'blob').
+  // Descarga forzada con Blob: fetch + credentials → blob → object URL → <a> oculto → click → revoke.
   const handleDownloadPDF = async () => {
+    const projectId = project?.id_proyecto || project?.id || id;
+    let objectUrl = null;
     try {
-      const projectId = project?.id_proyecto || project?.id || id;
       const res = await fetch(getBitacoraPdfUrl(projectId), {
         method: 'GET',
         credentials: 'include',
       });
       if (!res.ok) throw new Error('No se pudo descargar el PDF');
       const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
+      objectUrl = window.URL.createObjectURL(blob);
+
       const a = document.createElement('a');
-      a.href = url;
+      a.href = objectUrl;
       a.download = `reporte_${projectId}.pdf`;
+      a.rel = 'noopener';
+      a.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
     } catch {
       showToast('Error al descargar PDF', 'error');
+    } finally {
+      if (objectUrl) {
+        window.URL.revokeObjectURL(objectUrl);
+      }
     }
   };
 
