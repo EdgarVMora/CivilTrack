@@ -5,7 +5,9 @@ export function useDarkMode() {
     try {
       const stored = localStorage.getItem('civiltrack_theme');
       if (stored) return stored === 'dark';
-    } catch {}
+    } catch {
+      /* localStorage unavailable */
+    }
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
   });
 
@@ -13,7 +15,9 @@ export function useDarkMode() {
     document.documentElement.classList.toggle('dark', dark);
     try {
       localStorage.setItem('civiltrack_theme', dark ? 'dark' : 'light');
-    } catch {}
+    } catch {
+      /* localStorage unavailable */
+    }
   }, [dark]);
 
   return [dark, () => setDark(d => !d)];
